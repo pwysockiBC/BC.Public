@@ -16,7 +16,12 @@ BC.Public/
 │  ├─ BC.Public.sln
 │  ├─ Directory.Build.props  shared build settings (warnings are errors)
 │  └─ src/app/Phc/           BC.Public.Phc: Project Homeless Connect API → /api/phc, port 5201
-└─ BC.Public.Web/            the public forms (not started); OpenAPI files land in openapi/
+└─ BC.Public.Web/            the public forms (React, VS Code)
+   ├─ openapi/               each API's OpenAPI file, written by the API build
+   └─ src/
+      ├─ main.tsx            entry point (renders the PHC page; a router comes with a second app)
+      ├─ app/phc/            PHC: PhcPage, phcApi.ts, generated/ (API types, never edited by hand)
+      └─ lib/                shared: api/http.ts, utils/cn.ts, components/ui (shadcn)
 ```
 
 - No code is shared with BC.Internal. Small helpers that both need (such as the date mapping for
@@ -33,6 +38,23 @@ BC.Public/
 4. Run the **http** profile (http://localhost:5201).
 5. Use `src/app/Phc/BC.Public.Phc.http`: load the form, wait 3 seconds, submit.
    Confirmation emails are written to `C:\temp\phc-mail` as `.eml` files in development.
+
+## Running the form locally
+
+1. Run the PHC API (above), then build it once so `BC.Public.Web/openapi/phc.json` is current.
+2. In `BC.Public.Web`: `npm ci` (not `npm install`; the lock file pins every version), then
+   `npm run dev` and open http://localhost:5174. Port 5173 is left for BC.Internal.Web.
+3. Vite forwards `/api/phc/...` to the API on port 5201 with the prefix removed, the same as IIS.
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server with hot reload |
+| `npm run api:types` | Regenerates `src/app/phc/generated/phc.d.ts` from `openapi/phc.json` |
+| `npm run build` | `api:types`, type-check, then the production build in `dist/` |
+| `npm run lint` | ESLint |
+
+After changing the API's DTOs: rebuild the API in Visual Studio, then `npm run api:types`.
+shadcn components are added with `npx shadcn add <name>` and live in `src/lib/components/ui`.
 
 ## Configuration
 

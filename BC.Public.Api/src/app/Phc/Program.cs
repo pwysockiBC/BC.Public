@@ -12,20 +12,26 @@ using BC.Public.Phc.Shared.Spam;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var generatingOpenApi = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+
 // Settings, checked at startup where a wrong value would otherwise fail quietly later.
-builder.Services.AddOptions<PhcOptions>()
+var phcOptions = builder.Services.AddOptions<PhcOptions>()
     .Bind(builder.Configuration.GetSection(PhcOptions.Section))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-builder.Services.AddOptions<EmailOptions>()
+    .ValidateDataAnnotations();
+var emailOptions = builder.Services.AddOptions<EmailOptions>()
     .Bind(builder.Configuration.GetSection(EmailOptions.Section))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+    .ValidateDataAnnotations();
+if (!generatingOpenApi)
+{
+    phcOptions.ValidateOnStart();
+    emailOptions.ValidateOnStart();
+}
 builder.Services.Configure<SpamOptions>(builder.Configuration.GetSection(SpamOptions.Section));
 var spam = builder.Configuration.GetSection(SpamOptions.Section).Get<SpamOptions>() ?? new SpamOptions();
 
