@@ -1,0 +1,31 @@
+# Files Git ignores in the BC.Public repo: build output, IDE state, local settings and secrets.
+
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+publish/
+
+# Server-only settings and secrets: never committed
+appsettings.Production.json
+appsettings.*.local.json
+*.pubxml
+*.pubxml.user
+
+# Node (BC.Public.Web, later)
+node_modules/
+dist/
+.vite/
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+.DS_Store
+
+# Code snapshot for Claude
+code-snapshot.txt

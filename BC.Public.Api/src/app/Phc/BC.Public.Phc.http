@@ -1,0 +1,105 @@
+# Manual tests for the public PHC API. Run the API (http profile, port 5201), then click
+# "Send request" above each request in Visual Studio. Run "form" first; the others use its response.
+# Wait at least 3 seconds after loading the form before submitting, or you'll get the "too quick" error.
+
+@baseUrl = http://localhost:5201
+
+### Load the form: the open project, its choices, and a form token
+# @name form
+GET {{baseUrl}}/form
+
+### Submit a valid application (PIT survey only, so no regions are needed)
+# @name submit
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "projectId": {{form.response.body.$.project.id}},
+  "formToken": "{{form.response.body.$.formToken}}",
+  "homepage": "",
+  "firstName": "Test",
+  "lastName": "Applicant",
+  "isUnder18": false,
+  "dateOfBirth": null,
+  "addressLine": "1 Main St",
+  "city": "Hackensack",
+  "state": "NJ",
+  "zipCode": "07601",
+  "phone": "201-555-0100",
+  "email": "test.applicant@example.org",
+  "participation": {
+    "pitSurvey": true
+  },
+  "streetTeamRegionIds": [],
+  "spokenLanguageIds": [],
+  "agreementsAccepted": true,
+  "agreementsVersion": "2027-1"
+}
+
+### Submit with the street team, using the first region the form offered
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "projectId": {{form.response.body.$.project.id}},
+  "formToken": "{{form.response.body.$.formToken}}",
+  "firstName": "Street",
+  "lastName": "Teamer",
+  "addressLine": "2 Main St",
+  "city": "Paramus",
+  "state": "NJ",
+  "zipCode": "07652",
+  "phone": "201-555-0101",
+  "email": "street.teamer@example.org",
+  "participation": {
+    "streetTeam": true,
+    "eventAssist": true,
+    "shiftMorning": true
+  },
+  "streetTeamRegionIds": [{{form.response.body.$.streetTeamRegions[0].id}}],
+  "spokenLanguageIds": [],
+  "agreementsAccepted": true,
+  "agreementsVersion": "2027-1"
+}
+
+### Rule errors: expect 400 with keys zipCode, phone, participation.donationDetails, agreementsAccepted
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "projectId": {{form.response.body.$.project.id}},
+  "formToken": "{{form.response.body.$.formToken}}",
+  "firstName": "Bad",
+  "lastName": "Data",
+  "addressLine": "3 Main St",
+  "city": "Teaneck",
+  "state": "NJ",
+  "zipCode": "123",
+  "phone": "555-0100",
+  "email": "bad.data@example.org",
+  "participation": {
+    "donate": true
+  },
+  "agreementsAccepted": false,
+  "agreementsVersion": "2027-1"
+}
+
+### Bad form token: expect 400 on formToken
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "projectId": {{form.response.body.$.project.id}},
+  "formToken": "not-a-real-token",
+  "firstName": "No",
+  "lastName": "Token",
+  "addressLine": "4 Main St",
+  "city": "Fort Lee",
+  "state": "NJ",
+  "zipCode": "07024",
+  "phone": "201-555-0102",
+  "email": "no.token@example.org",
+  "participation": { "pitSurvey": true },
+  "agreementsAccepted": true,
+  "agreementsVersion": "2027-1"
+}
